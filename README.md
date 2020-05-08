@@ -1,1 +1,1 @@
-# trabajoPracticoMonopoly
+# Paradigmas 
