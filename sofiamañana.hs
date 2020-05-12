@@ -1,6 +1,9 @@
 import Text.Show.Functions()
 --import Data.List (genericLength)
 
+--- modificaciones prueba
+-- prueba 2
+
 
 --Record Syntax!
 
