@@ -5,7 +5,6 @@ import Text.Show.Functions()
 
 --Record Syntax!
 
---[[ mejore la expresividad en los tipos]]
 data Jugador = Jugador { 
     nombreDelJugador :: String,
     cantDinero :: Int,
@@ -35,20 +34,27 @@ manuel = Jugador "Manuel" 500 "Oferente singular" [] [pasarPorElBanco, enojarse]
 
 --pasarPorElBanco: aumenta el dinero del jugador en $40 y cambia su táctica a “Comprador compulsivo”.
 
---[[ ya modifique y delegue a la funcion cantidadDinero ]]
-
 pasarPorElBanco :: Accion
 pasarPorElBanco unJugador = unJugador  {cantDinero  = cantidadDinero unJugador 40 , tacticaJugador  = "Comprador compulsivo"}
                                                        
 --enojarse: suma $50 y agrega gritar a sus acciones.
 enojarse :: Accion
 
+-------------------------[[ issue 14: modifique lo de agregar elementos a una lista ]]
 
--- [[ no me permite poner accionesJugador unJugador  : [gritar] ]]
-enojarse unJugador = unJugador { cantDinero = cantidadDinero unJugador 50 , accionesJugador =  accionesJugador unJugador ++ [gritar] }
+enojarse unJugador = unJugador { cantDinero = cantidadDinero unJugador 50 , accionesJugador =  gritar : (accionesJugador unJugador) }
 
+
+
+-------------------------------------------------------------------------------------------------
+--cantidadDinero :: Int -> Jugador -> Jugador
+--cantidadDinero unMonto unJugador = unJugador { cantDinero = cantDinero unJugador + unMonto }
 cantidadDinero :: Jugador -> Int -> Int
 cantidadDinero unJugador unDinero = (cantDinero  unJugador) +  unDinero 
+
+------------------------------------------------------------------------------------------------------
+
+
 
 --gritar : agrega “AHHHH” al principio de su nombre.
 gritar :: Accion
@@ -57,17 +63,19 @@ gritar unJugador = unJugador { nombreDelJugador = "AHHHH" ++ nombreDelJugador un
 
 --pagarAAccionistas: resta $100 para todos los casos excepto que la táctica sea “Accionista”, en ese caso suma $200.
 
--- [[ modifique y delegue a la funcion esDeTactica ]]
-
+-------------------------------------------------------------------------------------
+--esDeTactica :: String -> Jugador -> Jugador
+--esDeTactica unaTactica unJugador = unJugador { tacticaJugador = unaTactica }
 esDeTactica :: String -> Jugador -> Bool
 esDeTactica  unatactica unJugador = tacticaJugador unJugador == unatactica
+------------------------------------------------------------------------------------
 
-cumpleTactica :: Jugador -> Bool
-cumpleTactica unJugador = esDeTactica "Accionista" unJugador
 
+
+--------------------------------[[ issue 15: ya modifique y elimine la funcion cumpleTactica]]
 pagarAAccionistas :: Accion
 pagarAAccionistas unJugador 
-    | cumpleTactica unJugador = unJugador { cantDinero =  cantidadDinero unJugador (200) }
+    | esDeTactica "Accionista" unJugador = unJugador { cantDinero =  cantidadDinero unJugador (200) }
      | otherwise = unJugador {  cantDinero = cantidadDinero unJugador (-100)  }
   
 
@@ -77,21 +85,21 @@ pagarAAccionistas unJugador
 --dinero y sumar la nueva adquisición a sus propiedades.
 -}
 
+
+--------------------------------[[ issue 15: ya modifique el uso de la funcion esDeTactica ]]
 cumpleTacticaParaPropiedad :: Jugador -> Bool 
-cumpleTacticaParaPropiedad unJugador  = tacticaJugador unJugador == "Oferente singular" || tacticaJugador unJugador == "Accionista"
+cumpleTacticaParaPropiedad unJugador  = esDeTactica "Oferente singular" unJugador || esDeTactica "Accionista" unJugador
  
 
---[[ mejore la funcion subastar en delegar a la funcion precio pero sigo sin saber como usar el : en lugar de ++ ]] 
+----------------------------------[[issue 14: modifique lo de agregar elementos a una lista ]]
+
 subastar :: Propiedad -> Accion
-subastar  unaPropiedad unJugador | cumpleTacticaParaPropiedad unJugador = unJugador {cantDinero = cantDinero unJugador - (precio unaPropiedad), propiedadesAdquiridas = propiedadesAdquiridas unJugador ++ [unaPropiedad]}   
+subastar  unaPropiedad unJugador | cumpleTacticaParaPropiedad unJugador = unJugador {cantDinero = cantDinero unJugador - (precio unaPropiedad), propiedadesAdquiridas = unaPropiedad : (propiedadesAdquiridas unJugador) }   
     | otherwise = unJugador
 
 
-----------------------------------------------------------------------------------------------------------------------------------------------------
-
 --cobrarAlquileres: suma $10 por cada propiedad barata y $20 por cada propiedad cara obtenida. Las propiedades baratas son aquellas cuyo precio es menor a $150.-
 
---[[ elimine la funcion que no usaba y delegue a la funcion precio ]] 
 precio :: Propiedad -> Int 
 precio (_, dinero) = dinero
 
@@ -102,10 +110,11 @@ asignarValor :: Propiedad -> Int
 asignarValor unaPropiedad  |  esBarata unaPropiedad = 10
   | otherwise = 20
 
---[[ ya mejore la funcion cobrar alquileres]]
+precioDelAlquiler :: [Propiedad] -> Int
+precioDelAlquiler = sum.map asignarValor
 
 cobrarAlquileres :: Accion
-cobrarAlquileres unJugador = unJugador { cantDinero = cantidadDinero unJugador ((sum.(map asignarValor).propiedadesAdquiridas) unJugador) }
+cobrarAlquileres unJugador = unJugador { cantDinero = cantidadDinero unJugador ((precioDelAlquiler.propiedadesAdquiridas) unJugador) }
 
 
  
