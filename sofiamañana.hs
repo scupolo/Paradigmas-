@@ -34,10 +34,11 @@ manuel = Jugador "Manuel" 500 "Oferente singular" [] [pasarPorElBanco, enojarse]
 --pasarPorElBanco: aumenta el dinero del jugador en $40 y cambia su táctica a “Comprador compulsivo”.
 
 pasarPorElBanco :: Accion
-pasarPorElBanco  unJugador  =  (cambiarDinero 40 . cambiarTactica "Comprador compulsivo")unJugador
+pasarPorElBanco  unJugador  =  (agregarDinero 40 . cambiarTactica "Comprador compulsivo")unJugador
 
-cambiarDinero :: Int -> Jugador -> Jugador
-cambiarDinero unMonto unJugador = unJugador { cantDinero = cantDinero unJugador + unMonto }
+-------------------------------[[ issue 16: cambie la expresividad de la funcion agregarDinero]]
+agregarDinero :: Int -> Jugador -> Jugador
+agregarDinero unMonto unJugador = unJugador { cantDinero = cantDinero unJugador + unMonto }
 
 cambiarTactica :: String -> Jugador -> Jugador
 cambiarTactica unaTactica unJugador = unJugador { tacticaJugador = unaTactica }
@@ -45,11 +46,12 @@ cambiarTactica unaTactica unJugador = unJugador { tacticaJugador = unaTactica }
                                                        
 --enojarse: suma $50 y agrega gritar a sus acciones.
 enojarse :: Accion
--------------------------[[ issue 14: modifique lo de agregar elementos a una lista y mejore la funcion ]]
-enojarse unJugador =  (cambiarDinero 50. nuevaAccion gritar) unJugador
 
-nuevaAccion :: Accion -> Accion
-nuevaAccion unaAccion unJugador = unJugador {accionesJugador =  gritar : (accionesJugador unJugador) }
+enojarse unJugador =  (agregarDinero 50. agregarAccion gritar) unJugador
+
+-----------------------------------[[ issue 16: cambie la expresividad de la funcion agregarAccion]]
+agregarAccion :: Accion -> Accion
+agregarAccion unaAccion unJugador = unJugador {accionesJugador =  gritar : (accionesJugador unJugador) }
 
 --gritar : agrega “AHHHH” al principio de su nombre.
 gritar :: Accion
@@ -57,11 +59,11 @@ gritar unJugador = unJugador { nombreDelJugador = "AHHHH" ++ nombreDelJugador un
 
 --pagarAAccionistas: resta $100 para todos los casos excepto que la táctica sea “Accionista”, en ese caso suma $200.
 
---------------------------------[[ issue 15: ya modifique y elimine la funcion cumpleTactica]]
+
 pagarAAccionistas :: Accion
 pagarAAccionistas unJugador 
-    | esDeTactica "Accionista" unJugador = cambiarDinero 200 unJugador
-     | otherwise = cambiarDinero  (-100) unJugador 
+    | esDeTactica "Accionista" unJugador = agregarDinero 200 unJugador
+     | otherwise = agregarDinero  (-100) unJugador 
   
 esDeTactica :: String -> Jugador -> Bool
 esDeTactica  unatactica unJugador = tacticaJugador unJugador == unatactica
@@ -72,16 +74,19 @@ esDeTactica  unatactica unJugador = tacticaJugador unJugador == unatactica
 --dinero y sumar la nueva adquisición a sus propiedades.
 -}
 
---------------------------------[[ issue 15: ya modifique el uso de la funcion esDeTactica ]]
+
 cumpleTacticaParaPropiedad :: Jugador -> Bool 
 cumpleTacticaParaPropiedad unJugador  = esDeTactica "Oferente singular" unJugador || esDeTactica "Accionista" unJugador
  
 
-----------------------------------[[issue 14: modifique lo de agregar elementos a una lista ]]
 
+----------------------------[[issue 17: ordene las guardas]]
 subastar :: Propiedad -> Accion
-subastar  unaPropiedad unJugador | cumpleTacticaParaPropiedad unJugador = nuevaPropiedad unaPropiedad unJugador
+subastar  unaPropiedad unJugador 
+    | cumpleTacticaParaPropiedad unJugador = nuevaPropiedad unaPropiedad unJugador
     | otherwise = unJugador
+    
+
 
 precio :: Propiedad -> Int 
 precio (_, dinero) = dinero
@@ -105,9 +110,13 @@ asignarValor unaPropiedad  |  esBarata unaPropiedad = 10
 precioDelAlquiler :: [Propiedad] -> Int
 precioDelAlquiler = sum.map asignarValor
 
--------------------------------- [[ issue 7: mejore las funciones ]]
+---------------------------------[[issue 13: deje las dos opciones de cobrarAlquileres, para tenerlo de referencia]]
 cobrarAlquileres :: Accion
-cobrarAlquileres unJugador = unJugador { cantDinero = cantDinero unJugador + ((precioDelAlquiler.propiedadesAdquiridas) unJugador) }
+--cobrarAlquileres unJugador = unJugador { cantDinero = cantDinero unJugador + ((precioDelAlquiler.propiedadesAdquiridas) unJugador) }
+cobrarAlquileres unJugador = agregarDinero (precioDelAlquiler.propiedadesAdquiridas $unJugador) unJugador
+
+
+
 
  ---tener en cuenta: composicion en terminal (gritar.pasarPorElBanco)carolina
 
@@ -119,7 +128,7 @@ la persona sigue haciendo berrinche hasta que llegue a comprar la propiedad que 
 hacerBrerrinchePor :: Propiedad -> Accion
 hacerBrerrinchePor unaPropiedad unJugador 
          | tieneDineroParaComprarPropiedad unaPropiedad unJugador = nuevaPropiedad unaPropiedad unJugador
-        |otherwise = hacerBrerrinchePor unaPropiedad ((cambiarDinero 10 . gritar) unJugador)
+        |otherwise = hacerBrerrinchePor unaPropiedad ((agregarDinero 10 . gritar) unJugador)
 
 tieneDineroParaComprarPropiedad :: Propiedad -> Jugador -> Bool
 tieneDineroParaComprarPropiedad unaPropiedad unJugador = cantDinero unJugador >= precio unaPropiedad 
